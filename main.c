@@ -10,38 +10,49 @@ bus_t bus = {NULL, NULL, NULL, 0};
 */
 int main(int argc, char *argv[])
 {
-	char *content;
-	FILE *file;
-	size_t size = 0;
-	ssize_t read_line = 1;
-	stack_t *stack = NULL;
-	unsigned int counter = 0;
+    char *content = NULL;
+    FILE *file;
+    size_t size = 0;
+    stack_t *stack = NULL;
+    unsigned int counter = 0;
 
-	if (argc != 2)
-	{
-		fprintf(stderr, "USAGE: monty file\n");
-		exit(EXIT_FAILURE);
-	}
-	file = fopen(argv[1], "r");
-	bus.file = file;
-	if (!file)
-	{
-		fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
-		exit(EXIT_FAILURE);
-	}
-	while (read_line > 0)
-	{
-		content = NULL;
-		read_line = getline(&content, &size, file);
-		bus.content = content;
-		counter++;
-		if (read_line > 0)
-		{
-			func_exec(content, &stack, counter, file);
-		}
-		free(content);
-	}
-	func_stack_free(stack);
-	fclose(file);
-return (0);
+    if (argc != 2)
+    {
+        fprintf(stderr, "USAGE: monty file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    file = fopen(argv[1], "r");
+    bus.file = file;
+
+    if (!file)
+    {
+        fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+
+    content = malloc(size);  // Allocate memory for content buffer
+
+    if (!content)
+    {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    while (fgets(content, size, file) != NULL)
+    {
+        bus.content = content;
+        counter++;
+
+        func_exec(content, &stack, counter, file);
+
+        free(content);
+        content = NULL;
+        size = 0;
+    }
+
+    func_stack_free(stack);
+    fclose(file);
+    return 0;
 }
